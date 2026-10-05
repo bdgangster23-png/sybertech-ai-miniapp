@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyberTech Ai Mini App</title>
+    <!-- Telegram Web App JS SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0f172a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 16px;
+            text-align: center;
+        }
+        .user-card {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .balance-card {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #3b82f6;
+        }
+        .balance-title { color: #94a3b8; font-size: 14px; margin-bottom: 5px; }
+        .balance-amount { font-size: 36px; font-weight: bold; color: #38bdf8; }
+        .btn {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            width: 100%;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .btn-task { background: linear-gradient(135deg, #059669, #047857); }
+        .btn-ref { background: linear-gradient(135deg, #d97706, #b45309); }
+        .task-box {
+            background: #1e293b;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 10px;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- User Profile Header -->
+    <div class="user-card">
+        <span id="username">ইউজার: লোড হচ্ছে...</span>
+        <span style="color: #4ade80; font-size: 12px;">● VIP Status</span>
+    </div>
+
+    <!-- Balance Dashboard -->
+    <div class="balance-card">
+        <div class="balance-title">আপনার মোট ব্যালেন্স</div>
+        <div class="balance-amount" id="balance">0 PTS</div>
+    </div>
+
+    <!-- Action Buttons -->
+    <button class="btn" onclick="claimDailyBonus()">🎁 দৈনিক বোনাস সংগ্রহ (100 PTS)</button>
+
+    <!-- Task Section -->
+    <h3 style="text-align: left; margin: 15px 0 5px 0;">আর্নিং টাস্কসমূহ</h3>
+    
+    <div class="task-box">
+        <div>
+            <strong>টেলিগ্রাম চ্যানেলে জয়েন করুন</strong>
+            <p style="font-size: 12px; color: #94a3b8;">পুরস্কার: +500 PTS</p>
+        </div>
+        <button class="btn btn-task" style="width: auto; padding: 8px 15px; margin: 0;" onclick="completeTask(500, 'https://t.me/telegram')">Complete</button>
+    </div>
+
+    <div class="task-box">
+        <div>
+            <strong>ইউটিউব ভিডিও দেখুন</strong>
+            <p style="font-size: 12px; color: #94a3b8;">পুরস্কার: +300 PTS</p>
+        </div>
+        <button class="btn btn-task" style="width: auto; padding: 8px 15px; margin: 0;" onclick="completeTask(300, 'https://youtube.com')">Complete</button>
+    </div>
+
+    <!-- Referral Link Section -->
+    <h3 style="text-align: left; margin: 20px 0 5px 0;">রেফারেল প্রোগ্রাম</h3>
+    <button class="btn btn-ref" onclick="copyRefLink()">🔗 রেফারেল লিঙ্ক কপি করুন</button>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Fullscreen Mode
+
+        // Telegram User Data Initialization
+        const user = tg.initDataUnsafe?.user;
+        let userId = user ? user.id : 'guest';
+        
+        if (user) {
+            document.getElementById('username').innerText = "ইউজার: " + (user.first_name || "User");
+        } else {
+            document.getElementById('username').innerText = "ইউজার: Guest";
+        }
+
+        // Local Storage for Points (Earning System)
+        let savedBalance = localStorage.getItem('sybertech_balance_' + userId) || 0;
+        let points = parseInt(savedBalance);
+        document.getElementById('balance').innerText = points + " PTS";
+
+        function updateBalance(newPoints) {
+            points += newPoints;
+            localStorage.setItem('sybertech_balance_' + userId, points);
+            document.getElementById('balance').innerText = points + " PTS";
+        }
+
+        function claimDailyBonus() {
+            let lastClaim = localStorage.getItem('sybertech_bonus_' + userId);
+            let today = new Date().toDateString();
+
+            if (lastClaim === today) {
+                tg.showAlert("আজকের দৈনিক বোনাস ইতোমধ্যে নেওয়া হয়ে গেছে! আগামীকাল আবার চেষ্টা করুন।");
+            } else {
+                updateBalance(100);
+                localStorage.setItem('sybertech_bonus_' + userId, today);
+                tg.showAlert("অভিনন্দন! আপনি ১০০ PTS দৈনিক বোনাস পেয়েছেন।");
+            }
+        }
+
+        function completeTask(reward, url) {
+            tg.openLink(url);
+            setTimeout(() => {
+                updateBalance(reward);
+                tg.showAlert("টাস্ক সফলভাবে সম্পন্ন হয়েছে! " + reward + " PTS যোগ করা হয়েছে।");
+            }, 2000);
+        }
+
+        function copyRefLink() {
+            let botUsername = "SyberTechAiBot"; // আপনার বটের ইউজারনেম দিয়ে পরিবর্তন করুন
+            let refLink = "https://t.me/" + botUsername + "?startapp=" + userId;
+            
+            navigator.clipboard.writeText(refLink);
+            tg.showAlert("আপনার রেফারেল লিঙ্ক কপি হয়েছে:\n" + refLink);
+        }
+    </script>
+</body>
+  </html>
